@@ -1,0 +1,152 @@
+[gd_scene load_steps=24 format=3 uid="uid://ctqjsdjilauev"]
+
+[ext_resource type="Script" uid="uid://ceecvmhmuf2w5" path="res://free_cam.gd" id="1_hbvo3"]
+[ext_resource type="Script" uid="uid://cyv5hraurobhw" path="res://earth_orbit.gd" id="2_hp4wh"]
+[ext_resource type="Script" uid="uid://b25nehcd8ewia" path="res://mercury_orbit.gd" id="3_auk15"]
+[ext_resource type="Script" uid="uid://bhog1hxj8objx" path="res://venus_orbit.gd" id="4_auk15"]
+[ext_resource type="Script" uid="uid://d1qaykea62nqu" path="res://mars_orbit.gd" id="6_swmsm"]
+[ext_resource type="Script" uid="uid://cxca8acqsk0lt" path="res://jupiter_orbit.gd" id="7_fcwkm"]
+[ext_resource type="Script" uid="uid://dy6cfx1bbshxh" path="res://satrun_orbit.gd" id="8_lkgeh"]
+[ext_resource type="Script" uid="uid://b7ikp0w1s3ujs" path="res://uranus_orbit.gd" id="9_aypcb"]
+[ext_resource type="Script" uid="uid://cjf7c71ak6o8d" path="res://neptune_orbit.gd" id="10_aypcb"]
+[ext_resource type="Script" uid="uid://dqm80diqo3p5s" path="res://camera_controls.gd" id="10_wc7ei"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_hbvo3"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_hp4wh"]
+sky_material = SubResource("ProceduralSkyMaterial_hbvo3")
+
+[sub_resource type="Environment" id="Environment_tfb7d"]
+background_mode = 2
+sky = SubResource("Sky_hp4wh")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="SphereMesh" id="SphereMesh_hp4wh"]
+
+[sub_resource type="Skin" id="Skin_tfb7d"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_ms4l2"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_swmsm"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_fcwkm"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_3s371"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_wc7ei"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_lkgeh"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_aypcb"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_uqwdu"]
+
+[node name="Solar-System" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_tfb7d")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, 0.75, -0.433013, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Sun" type="MeshInstance3D" parent="."]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0)
+mesh = SubResource("SphereMesh_hp4wh")
+skin = SubResource("Skin_tfb7d")
+
+[node name="Free Cam" type="Camera3D" parent="."]
+script = ExtResource("1_hbvo3")
+
+[node name="MercuryOrbit" type="Node3D" parent="."]
+script = ExtResource("3_auk15")
+eccentricity = 0.206
+orbit_speed = 1.6
+
+[node name="mercury" type="MeshInstance3D" parent="MercuryOrbit"]
+mesh = SubResource("SphereMesh_ms4l2")
+
+[node name="VenusOrbit" type="Node3D" parent="."]
+script = ExtResource("4_auk15")
+
+[node name="venus" type="MeshInstance3D" parent="VenusOrbit"]
+mesh = SubResource("SphereMesh_swmsm")
+
+[node name="EarthOrbit" type="Node3D" parent="."]
+script = ExtResource("2_hp4wh")
+
+[node name="earth" type="MeshInstance3D" parent="EarthOrbit"]
+mesh = SubResource("SphereMesh_fcwkm")
+
+[node name="MarsOrbit" type="Node3D" parent="."]
+script = ExtResource("6_swmsm")
+
+[node name="mars" type="MeshInstance3D" parent="MarsOrbit"]
+mesh = SubResource("SphereMesh_3s371")
+
+[node name="JupiterOrbit" type="Node3D" parent="."]
+script = ExtResource("7_fcwkm")
+
+[node name="jupiter" type="MeshInstance3D" parent="JupiterOrbit"]
+mesh = SubResource("SphereMesh_wc7ei")
+
+[node name="SatrunOrbit" type="Node3D" parent="."]
+script = ExtResource("8_lkgeh")
+
+[node name="satrun" type="MeshInstance3D" parent="SatrunOrbit"]
+mesh = SubResource("SphereMesh_lkgeh")
+
+[node name="UranusOrbit" type="Node3D" parent="."]
+script = ExtResource("9_aypcb")
+
+[node name="uranus" type="MeshInstance3D" parent="UranusOrbit"]
+mesh = SubResource("SphereMesh_aypcb")
+
+[node name="NeptuneOrbit" type="Node3D" parent="."]
+script = ExtResource("10_aypcb")
+
+[node name="neptune" type="MeshInstance3D" parent="NeptuneOrbit"]
+mesh = SubResource("SphereMesh_uqwdu")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="CameraControls" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("10_wc7ei")
+
+[node name="RotateLeftButton" type="Button" parent="UI/CameraControls"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 605.0
+offset_right = 42.0
+offset_bottom = 645.0
+text = "⬅️"
+
+[node name="RotateRightButton" type="Button" parent="UI/CameraControls"]
+layout_mode = 0
+offset_left = 45.0
+offset_top = 605.0
+offset_right = 85.0
+offset_bottom = 645.0
+text = "➡️"
+
+[node name="ZoomInButton" type="Button" parent="UI/CameraControls"]
+offset_left = 1101.0
+offset_top = 561.0
+offset_right = 1153.0
+offset_bottom = 601.0
+text = "🔍➕"
+
+[node name="ZoomOutButton" type="Button" parent="UI/CameraControls"]
+layout_mode = 0
+offset_left = 1096.0
+offset_top = 605.0
+offset_right = 1153.0
+offset_bottom = 645.0
+text = " 🔍➖"
