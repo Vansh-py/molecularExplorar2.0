@@ -1,0 +1,28 @@
+ if i place H it will automaticly make bond with carbon and for oxygen it will automaticly make double bond with carbon 
+but we can change bond by clicking on bond like it will show all available bonds according to compound like for oxygen which has defalt double bond we can just click on bond to make it single bond 
+additionally 
+openchemlib-full.js:43 Uncaught RangeError: Invalid array length
+    at Object.Rvb (openchemlib-full.js:43:33)
+    at Qvb (openchemlib-full.js:42:240)
+    at Object.im (openchemlib-full.js:82:11232)
+    at bw.Un (openchemlib-full.js:82:22707)
+    at bw.sq (openchemlib-full.js:83:29105)
+    at new bw (openchemlib-full.js:90:1156)
+    at new g7 (openchemlib-full.js:130:16386)
+    at analyze (index.html:862:24)
+    at HTMLButtonElement.onclick (index.html:461:119)
+Rvb @ openchemlib-full.js:43
+Qvb @ openchemlib-full.js:42
+im @ openchemlib-full.js:82
+Un @ openchemlib-full.js:82
+sq @ openchemlib-full.js:83
+bw @ openchemlib-full.js:90
+g7 @ openchemlib-full.js:130
+analyze @ index.html:862
+onclick @ index.html:461
+this error also appering when clicking on Analyze molecule
+also 
+for single double and triple bond make 1 / 2/ 3 lines in bond accordingly
+ also make a feature that of any molecule if bonds are not completed complete them and if there are more than one molecule show msg
+if bonds are incomplete make a option to complete remaining bonds with H atom also 
+add arematic ccompounds in side panne

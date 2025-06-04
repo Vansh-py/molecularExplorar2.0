@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chemical Identifier Converter</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --warning: #f39c12;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a3a, #2c3e50);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .converter-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        label {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        input, select {
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+        }
+        
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        button {
+            background: linear-gradient(to right, var(--secondary), var(--success));
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .result-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--secondary);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .result-value {
+            font-size: 1.1rem;
+            word-break: break-all;
+            min-height: 60px;
+            padding: 10px 0;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 20px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--secondary);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        
+        .example-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+        
+        .example-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .error {
+            color: var(--accent);
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            display: none;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .converter-card {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Chemical Identifier Converter</h1>
+            <p class="subtitle">Convert between SMILES, IUPAC names, and common chemical names using PubChem's API</p>
+        </header>
+        
+        <main>
+            <div class="converter-card">
+                <div class="input-group">
+                    <label for="chemical-input">Chemical Identifier:</label>
+                    <input type="text" id="chemical-input" placeholder="Enter SMILES, IUPAC name, or common name" autocomplete="off">
+                </div>
+                
+                <div class="input-group">
+                    <label for="input-type">Input Type:</label>
+                    <select id="input-type">
+                        <option value="auto">Auto Detect</option>
+                        <option value="smiles">SMILES</option>
+                        <option value="iupac">IUPAC Name</option>
+                        <option value="common">Common Name</option>
+                    </select>
+                </div>
+                
+                <button id="convert-btn">Convert</button>
+                
+                <div class="examples">
+                    <div class="example-btn" data-input="C1=CC=CC=C1" data-type="smiles">Benzene (SMILES)</div>
+                    <div class="example-btn" data-input="ethanol" data-type="common">Ethanol (Common)</div>
+                    <div class="example-btn" data-input="2-acetoxybenzoic acid" data-type="iupac">Aspirin (IUPAC)</div>
+                    <div class="example-btn" data-input="CCO" data-type="smiles">Ethanol (SMILES)</div>
+                </div>
+                
+                <div class="error" id="error-message"></div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Querying PubChem database...</p>
+                </div>
+            </div>
+            
+            <div class="results" id="results-container">
+                <div class="result-card">
+                    <div class="result-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"></path>
+                        </svg>
+                        Common Name
+                    </div>
+                    <div class="result-value" id="common-name">-</div>
+                </div>
+                
+                <div class="result-card">
+                    <div class="result-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"></path>
+                        </svg>
+                        IUPAC Name
+                    </div>
+                    <div class="result-value" id="iupac-name">-</div>
+                </div>
+                
+                <div class="result-card">
+                    <div class="result-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"></path>
+                        </svg>
+                        SMILES
+                    </div>
+                    <div class="result-value" id="smiles">-</div>
+                </div>
+                
+                <div class="result-card">
+                    <div class="result-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"></path>
+                        </svg>
+                        PubChem CID
+                    </div>
+                    <div class="result-value" id="cid">-</div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Powered by PubChem API | All chemical data from public sources</p>
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const convertBtn = document.getElementById('convert-btn');
+            const chemicalInput = document.getElementById('chemical-input');
+            const inputType = document.getElementById('input-type');
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('error-message');
+            const exampleBtns = document.querySelectorAll('.example-btn');
+            const resultElements = {
+                common: document.getElementById('common-name'),
+                iupac: document.getElementById('iupac-name'),
+                smiles: document.getElementById('smiles'),
+                cid: document.getElementById('cid')
+            };
+            
+            // Example button functionality
+            exampleBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    chemicalInput.value = this.dataset.input;
+                    inputType.value = this.dataset.type;
+                    convertChemical();
+                });
+            });
+            
+            // Convert button functionality
+            convertBtn.addEventListener('click', convertChemical);
+            
+            // Handle Enter key in input field
+            chemicalInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    convertChemical();
+                }
+            });
+            
+            async function convertChemical() {
+                const identifier = chemicalInput.value.trim();
+                const selectedType = inputType.value;
+                
+                // Clear previous results and errors
+                clearResults();
+                hideError();
+                
+                if (!identifier) {
+                    showError('Please enter a chemical identifier');
+                    return;
+                }
+                
+                showLoading();
+                
+                try {
+                    // First get the PubChem CID
+                    const cid = await getCID(identifier, selectedType);
+                    
+                    if (!cid) {
+                        showError('No matching compound found in PubChem');
+                        return;
+                    }
+                    
+                    // Then get the compound properties
+                    const compoundData = await getCompoundProperties(cid);
+                    
+                    if (!compoundData) {
+                        showError('Failed to retrieve compound data');
+                        return;
+                    }
+                    
+                    // Display the results
+                    displayResults(compoundData);
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError(`An error occurred: ${error.message}`);
+                } finally {
+                    hideLoading();
+                }
+            }
+            
+            async function getCID(identifier, inputType) {
+                let url;
+                
+                // Determine the appropriate PubChem endpoint based on input type
+                if (inputType === 'auto') {
+                    // Try all endpoints in sequence
+                    try {
+                        return await tryCIDEndpoints(identifier);
+                    } catch (error) {
+                        throw error;
+                    }
+                } else {
+                    // Use the specified input type
+                    switch (inputType) {
+                        case 'smiles':
+                            url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(identifier)}/cids/JSON`;
+                            break;
+                        case 'iupac':
+                        case 'common':
+                            url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(identifier)}/cids/JSON`;
+                            break;
+                        default:
+                            throw new Error('Invalid input type');
+                    }
+                    
+                    const response = await fetchWithTimeout(url);
+                    const data = await response.json();
+                    
+                    if (data.IdentifierList && data.IdentifierList.CID && data.IdentifierList.CID.length > 0) {
+                        return data.IdentifierList.CID[0];
+                    }
+                    
+                    return null;
+                }
+            }
+            
+            async function tryCIDEndpoints(identifier) {
+                // Try name endpoint first (covers both common and IUPAC names)
+                try {
+                    const nameUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(identifier)}/cids/JSON`;
+                    const nameResponse = await fetchWithTimeout(nameUrl);
+                    
+                    if (nameResponse.ok) {
+                        const nameData = await nameResponse.json();
+                        if (nameData.IdentifierList && nameData.IdentifierList.CID && nameData.IdentifierList.CID.length > 0) {
+                            return nameData.IdentifierList.CID[0];
+                        }
+                    }
+                } catch (error) {
+                    console.log('Name endpoint failed, trying SMILES...');
+                }
+                
+                // Try SMILES endpoint if name endpoint didn't work
+                try {
+                    const smilesUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(identifier)}/cids/JSON`;
+                    const smilesResponse = await fetchWithTimeout(smilesUrl);
+                    
+                    if (smilesResponse.ok) {
+                        const smilesData = await smilesResponse.json();
+                        if (smilesData.IdentifierList && smilesData.IdentifierList.CID && smilesData.IdentifierList.CID.length > 0) {
+                            return smilesData.IdentifierList.CID[0];
+                        }
+                    }
+                } catch (error) {
+                    console.log('SMILES endpoint also failed');
+                }
+                
+                throw new Error('No matching compound found using auto detection');
+            }
+            
+            async function getCompoundProperties(cid) {
+                const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/property/CanonicalSMILES,IUPACName,Title,IsomericSMILES/JSON`;
+                
+                const response = await fetchWithTimeout(url);
+                const data = await response.json();
+                
+                if (data.PropertyTable && data.PropertyTable.Properties && data.PropertyTable.Properties.length > 0) {
+                    return {
+                        cid: cid,
+                        commonName: data.PropertyTable.Properties[0].Title || 'N/A',
+                        iupacName: data.PropertyTable.Properties[0].IUPACName || 'N/A',
+                        smiles: data.PropertyTable.Properties[0].CanonicalSMILES || 
+                                data.PropertyTable.Properties[0].IsomericSMILES || 'N/A'
+                    };
+                }
+                
+                return null;
+            }
+            
+            function displayResults(data) {
+                resultElements.common.textContent = data.commonName;
+                resultElements.iupac.textContent = data.iupacName;
+                resultElements.smiles.textContent = data.smiles;
+                resultElements.cid.textContent = data.cid;
+            }
+            
+            function clearResults() {
+                for (const key in resultElements) {
+                    resultElements[key].textContent = '-';
+                }
+            }
+            
+            function showLoading() {
+                loading.style.display = 'block';
+            }
+            
+            function hideLoading() {
+                loading.style.display = 'none';
+            }
+            
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+            }
+            
+            function hideError() {
+                errorMessage.style.display = 'none';
+            }
+            
+            async function fetchWithTimeout(url, timeout = 10000) {
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), timeout);
+                
+                const response = await fetch(url, {
+                    signal: controller.signal
+                });
+                
+                clearTimeout(id);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return response;
+            }
+        });
+    </script>
+</body>
+</html>

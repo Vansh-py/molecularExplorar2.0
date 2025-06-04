@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IUPAC to SMILES Converter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/smiles-drawer@1.0.10/dist/smiles-drawer.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, #2c3e50, #1a2a6c);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(30deg);
+        }
+        
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            position: relative;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+            position: relative;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+        
+        .input-container {
+            display: flex;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .input-container input {
+            flex: 1;
+            padding: 18px 25px;
+            border: none;
+            font-size: 1.2rem;
+            background: #f8f9fa;
+            color: #2c3e50;
+        }
+        
+        .input-container input:focus {
+            outline: none;
+            background: #fff;
+        }
+        
+        .input-container input::placeholder {
+            color: #6c757d;
+        }
+        
+        .input-container button {
+            background: #2980b9;
+            color: white;
+            border: none;
+            padding: 0 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .input-container button:hover {
+            background: #3498db;
+        }
+        
+        .input-container button:active {
+            transform: translateY(2px);
+        }
+        
+        .results-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .result-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+            min-height: 200px;
+        }
+        
+        .result-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .result-title h2 {
+            font-size: 1.5rem;
+        }
+        
+        .result-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 1.3rem;
+            word-break: break-word;
+            min-height: 120px;
+            border: 1px solid #dee2e6;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .molecule-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+        }
+        
+        #molecule-canvas {
+            width: 100%;
+            height: 200px;
+        }
+        
+        .molecule-placeholder {
+            color: #6c757d;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .molecule-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+        
+        .details-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .detail-card {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #bbdefb;
+        }
+        
+        .detail-card h3 {
+            color: #1565c0;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .detail-card p {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .examples {
+            margin-top: 30px;
+        }
+        
+        .examples h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .example-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .example-card {
+            background: #e8f5e9;
+            border-radius: 10px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #c8e6c9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .example-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            background: #c8e6c9;
+        }
+        
+        .example-card h4 {
+            color: #2e7d32;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        
+        .example-card p {
+            color: #2c3e50;
+            font-family: monospace;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+        
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .spinner {
+            border: 5px solid rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: #c62828;
+            background: #ffebee;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+        
+        .error i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 25px;
+            background: #f8f9fa;
+            color: #6c757d;
+            font-size: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .chemical-icon {
+            font-size: 1.2rem;
+            vertical-align: middle;
+            margin: 0 2px;
+        }
+        
+        .copied-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+        }
+        
+        @media (max-width: 768px) {
+            .results-section {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .input-container {
+                flex-direction: column;
+            }
+            
+            .input-container button {
+                padding: 15px;
+                justify-content: center;
+            }
+            
+            .example-list {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .example-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .detail-card {
+                padding: 15px;
+            }
+            
+            header h1 {
+                font-size: 1.8rem;
+            }
+            
+            header p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-atom"></i> IUPAC to SMILES Converter</h1>
+            <p>Convert IUPAC chemical names to SMILES notation <br>BY VANSH</p>
+        </header>
+        
+        <div class="content">
+            <div class="input-group">
+                <label for="iupac-input">Enter IUPAC Name or Common Chemical Name:</label>
+                <div class="input-container">
+                    <input type="text" id="iupac-input" placeholder="e.g., Ethanol, Aspirin, Caffeine, Glucose...">
+                    <button id="convert-btn">
+                        <i class="fas fa-flask"></i> Convert
+                    </button>
+                </div>
+            </div>
+            
+            <div class="loader" id="loader">
+                <div class="spinner"></div>
+                <p>Querying PubChem database for molecular data...</p>
+            </div>
+            
+            <div class="error" id="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div id="error-text">Compound not found. Please check the name and try again.</div>
+            </div>
+            
+            <div class="results-section">
+                <div class="result-container">
+                    <div class="result-title">
+                        <i class="fas fa-code"></i>
+                        <h2>SMILES Result</h2>
+                    </div>
+                    <div class="result-box" id="smiles-result">
+                        SMILES notation will appear here
+                    </div>
+                    <button id="copy-btn" style="margin-top: 15px; padding: 10px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; display: none;">
+                        <i class="fas fa-copy"></i> Copy to Clipboard
+                    </button>
+                </div>
+                
+                <div class="result-container">
+                    <div class="result-title">
+                        <i class="fas fa-shapes"></i>
+                        <h2>Molecular Structure</h2>
+                    </div>
+                    <div class="molecule-display" id="molecule-display">
+                        <div class="molecule-placeholder">
+                            <i class="fas fa-molecule"></i>
+                            <p>Molecular structure visualization will appear here</p>
+                        </div>
+                        <canvas id="molecule-canvas" width="300" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="details-container" id="details-container">
+                <div class="detail-card">
+                    <h3><i class="fas fa-cube"></i> Molecular Formula</h3>
+                    <p id="molecular-formula">-</p>
+                </div>
+                <div class="detail-card">
+                    <h3><i class="fas fa-weight-hanging"></i> Molecular Weight</h3>
+                    <p id="molecular-weight">-</p>
+                </div>
+                <div class="detail-card">
+                    <h3><i class="fas fa-vial"></i> Compound CID</h3>
+                    <p id="compound-cid">-</p>
+                </div>
+            </div>
+            
+            <div class="examples">
+                <h3><i class="fas fa-vial"></i> Try these examples:</h3>
+                <div class="example-list">
+                    <div class="example-card" data-iupac="Ethanol">
+                        <h4>Ethanol</h4>
+                        <p>C<sub class="chemical-icon">2</sub>H<sub class="chemical-icon">5</sub>OH</p>
+                    </div>
+                    <div class="example-card" data-iupac="Aspirin">
+                        <h4>Aspirin</h4>
+                        <p>C<sub class="chemical-icon">9</sub>H<sub class="chemical-icon">8</sub>O<sub class="chemical-icon">4</sub></p>
+                    </div>
+                    <div class="example-card" data-iupac="Caffeine">
+                        <h4>Caffeine</h4>
+                        <p>C<sub class="chemical-icon">8</sub>H<sub class="chemical-icon">10</sub>N<sub class="chemical-icon">4</sub>O<sub class="chemical-icon">2</sub></p>
+                    </div>
+                    <div class="example-card" data-iupac="Glucose">
+                        <h4>Glucose</h4>
+                        <p>C<sub class="chemical-icon">6</sub>H<sub class="chemical-icon">12</sub>O<sub class="chemical-icon">6</sub></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>This tool uses the PubChem database to convert IUPAC names to SMILES notation. PubChem is maintained by the National Center for Biotechnology Information (NCBI).</p>
+            <p>SMILES = Simplified Molecular-Input Line-Entry System | Created with Chemistry &lt;3</p>
+        </footer>
+    </div>
+
+    <div class="copied-message" id="copied-message">
+        <i class="fas fa-check-circle"></i> SMILES copied to clipboard!
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const convertBtn = document.getElementById('convert-btn');
+            const iupacInput = document.getElementById('iupac-input');
+            const smilesResult = document.getElementById('smiles-result');
+            const loader = document.getElementById('loader');
+            const errorMessage = document.getElementById('error-message');
+            const errorText = document.getElementById('error-text');
+            const moleculeDisplay = document.getElementById('molecule-display');
+            const moleculeCanvas = document.getElementById('molecule-canvas');
+            const exampleCards = document.querySelectorAll('.example-card');
+            const molecularFormula = document.getElementById('molecular-formula');
+            const molecularWeight = document.getElementById('molecular-weight');
+            const compoundCid = document.getElementById('compound-cid');
+            const copyBtn = document.getElementById('copy-btn');
+            const copiedMessage = document.getElementById('copied-message');
+            
+            // Initialize SmilesDrawer
+            const options = { width: 300, height: 200 };
+            const smilesDrawer = new SmilesDrawer.Drawer(options);
+            
+            // Hide canvas initially
+            moleculeCanvas.style.display = 'none';
+            
+            // Handle example clicks
+            exampleCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const iupacName = this.getAttribute('data-iupac');
+                    iupacInput.value = iupacName;
+                    convertIUPACtoSMILES(iupacName);
+                });
+            });
+            
+            // Handle convert button click
+            convertBtn.addEventListener('click', function() {
+                const iupacName = iupacInput.value.trim();
+                if (iupacName) {
+                    convertIUPACtoSMILES(iupacName);
+                } else {
+                    showError("Please enter a chemical name");
+                }
+            });
+            
+            // Handle Enter key in input field
+            iupacInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    convertBtn.click();
+                }
+            });
+            
+            // Handle copy button click
+            copyBtn.addEventListener('click', function() {
+                const text = smilesResult.textContent;
+                if (text && text !== "SMILES notation will appear here") {
+                    navigator.clipboard.writeText(text).then(() => {
+                        copiedMessage.style.display = 'block';
+                        setTimeout(() => {
+                            copiedMessage.style.display = 'none';
+                        }, 2000);
+                    });
+                }
+            });
+            
+            async function convertIUPACtoSMILES(iupacName) {
+                // Reset previous results
+                smilesResult.textContent = "Searching PubChem...";
+                smilesResult.style.color = "#333";
+                molecularFormula.textContent = "-";
+                molecularWeight.textContent = "-";
+                compoundCid.textContent = "-";
+                hideError();
+                loader.style.display = "block";
+                moleculeCanvas.style.display = "none";
+                copyBtn.style.display = 'none';
+                
+                // Clear previous molecule drawing
+                const ctx = moleculeCanvas.getContext('2d');
+                ctx.clearRect(0, 0, moleculeCanvas.width, moleculeCanvas.height);
+                
+                // Show placeholder
+                document.querySelector('.molecule-placeholder').style.display = 'block';
+                
+                try {
+                    // Step 1: Get CID from name
+                    const cidResponse = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(iupacName)}/cids/JSON`);
+                    
+                    if (!cidResponse.ok) {
+                        const errorData = await cidResponse.json();
+                        throw new Error(errorData.Fault ? errorData.Fault.Message : 'Compound not found in PubChem database');
+                    }
+                    
+                    const cidData = await cidResponse.json();
+                    const cid = cidData.IdentifierList.CID[0];
+                    
+                    if (!cid) {
+                        throw new Error('No CID found for this compound');
+                    }
+                    
+                    compoundCid.textContent = cid;
+                    
+                    // Step 2: Get compound details
+                    const compoundResponse = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/property/CanonicalSMILES,MolecularFormula,MolecularWeight/JSON`);
+                    
+                    if (!compoundResponse.ok) {
+                        const errorData = await compoundResponse.json();
+                        throw new Error(errorData.Fault ? errorData.Fault.Message : 'Failed to retrieve compound data');
+                    }
+                    
+                    const compoundData = await compoundResponse.json();
+                    const compound = compoundData.PropertyTable.Properties[0];
+                    
+                    if (!compound) {
+                        throw new Error('Compound data not available');
+                    }
+                    
+                    // Update results
+                    const smiles = compound.CanonicalSMILES;
+                    smilesResult.textContent = smiles || "Not available";
+                    smilesResult.style.color = "#27ae60";
+                    
+                    molecularFormula.textContent = compound.MolecularFormula || "N/A";
+                    
+                    // Handle molecular weight (it might be a string or number)
+                    if (compound.MolecularWeight) {
+                        const weight = parseFloat(compound.MolecularWeight);
+                        molecularWeight.textContent = isNaN(weight) ? compound.MolecularWeight : weight.toFixed(2);
+                    } else {
+                        molecularWeight.textContent = "N/A";
+                    }
+                    
+                    // Show copy button
+                    if (smiles) {
+                        copyBtn.style.display = 'block';
+                    }
+                    
+                    // Draw molecule if SMILES is available
+                    if (smiles) {
+                        drawMolecule(smiles);
+                    } else {
+                        document.querySelector('.molecule-placeholder').style.display = 'block';
+                        moleculeCanvas.style.display = 'none';
+                    }
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError(error.message);
+                    smilesResult.textContent = "Conversion failed";
+                    smilesResult.style.color = "#e74c3c";
+                    copyBtn.style.display = 'none';
+                } finally {
+                    loader.style.display = "none";
+                }
+            }
+            
+            function drawMolecule(smiles) {
+                try {
+                    // Hide placeholder
+                    document.querySelector('.molecule-placeholder').style.display = 'none';
+                    
+                    // Show canvas
+                    moleculeCanvas.style.display = 'block';
+                    
+                    // Draw molecule
+                    SmilesDrawer.parse(smiles, function(tree) {
+                        smilesDrawer.draw(tree, 'molecule-canvas', 'light', false);
+                    });
+                } catch (error) {
+                    console.error('Drawing error:', error);
+                    document.querySelector('.molecule-placeholder').style.display = 'block';
+                    moleculeCanvas.style.display = 'none';
+                }
+            }
+            
+            function showError(message) {
+                errorText.innerHTML = `<strong>Error:</strong> ${message}`;
+                errorMessage.style.display = "block";
+            }
+            
+            function hideError() {
+                errorMessage.style.display = "none";
+            }
+            
+            // Initialize with an example
+            convertIUPACtoSMILES('Ethanol');
+        });
+    </script>
+</body>
+</html>
