@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chemistry Lab | Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c0e1d, #1a1d3b);
+            color: #e0e0ff;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Animated Particle Background */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            text-align: center;
+            padding: 2rem 0;
+            animation: fadeIn 1.5s ease-out;
+        }
+        
+        .logo {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: #4fc3f7;
+            text-shadow: 0 0 15px rgba(79, 195, 247, 0.5);
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #4fc3f7, #29b6f6, #03a9f4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            padding: 2rem 0;
+        }
+        
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            max-width: 800px;
+            margin-top: 2rem;
+            animation: slideUp 1s ease-out;
+        }
+        
+        .nav-btn {
+            background: rgba(25, 30, 60, 0.7);
+            border: 1px solid rgba(79, 195, 247, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(2, 8, 29, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+        
+        .nav-btn:hover {
+            transform: translateY(-8px);
+            background: rgba(40, 48, 90, 0.8);
+            border-color: rgba(79, 195, 247, 0.6);
+            box-shadow: 0 12px 40px rgba(0, 150, 255, 0.3);
+        }
+        
+        .nav-btn i {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            color: #4fc3f7;
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-btn:hover i {
+            transform: scale(1.2);
+            color: #29b6f6;
+        }
+        
+        .nav-btn h2 {
+            font-size: 1.6rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+        }
+        
+        .nav-btn p {
+            font-size: 0.95rem;
+            opacity: 0.7;
+            max-width: 280px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.6;
+            animation: fadeIn 2s ease-out;
+        }
+        
+        .element-badge {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            background: rgba(79, 195, 247, 0.1);
+            border: 1px solid rgba(79, 195, 247, 0.3);
+            animation: float 12s infinite ease-in-out;
+        }
+        
+        .badge-1 {
+            top: 15%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .badge-2 {
+            top: 25%;
+            right: 12%;
+            animation-delay: 1s;
+        }
+        
+        .badge-3 {
+            bottom: 20%;
+            left: 15%;
+            animation-delay: 2s;
+        }
+        
+        .badge-4 {
+            bottom: 30%;
+            right: 18%;
+            animation-delay: 3s;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .buttons-grid {
+                grid-template-columns: 1fr;
+                max-width: 500px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .logo {
+                font-size: 2.8rem;
+            }
+            
+            .nav-btn {
+                padding: 1.5rem;
+                min-height: 170px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .nav-btn h2 {
+                font-size: 1.4rem;
+            }
+            
+            .element-badge {
+                width: 45px;
+                height: 45px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background Canvas -->
+    <canvas id="particle-canvas"></canvas>
+    
+    <!-- Chemistry Element Badges -->
+    <div class="element-badge badge-1">H</div>
+    <div class="element-badge badge-2">O</div>
+    <div class="element-badge badge-3">C</div>
+    <div class="element-badge badge-4">N</div>
+    
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-atom"></i>
+            </div>
+            <h1>CHEMISTRY Project</h1>
+            <p class="subtitle">Making Chemistry Easy and Fun <br> new and fun way to learn and teach <br>For Chemistry enthusiasts</p>
+        </header>
+        
+        <main class="main-content">
+            <div class="buttons-grid">
+                <div class="nav-btn" onclick="window.location.href='draw-structure.html'">
+                    <!-- <i class="fas fa-flask"></i> -->
+                    <h2>Draw Structure</h2>
+                    <!-- <p>Draw Structure</p> -->
+                </div>
+                
+                <div class="nav-btn" onclick=alert()>
+                    <!-- <i class="fas fa-table"></i> -->
+                    <h2>Reaction Simulator</h2>
+                    <!-- <p>Explore elements and their properties</p> -->
+                </div>
+                
+                <div class="nav-btn" onclick=window.location.href='nameTo2d.html'>
+                    <!-- <i class="fas fa-vial"></i> -->
+                    <h2>2D Structure</h2>
+                    <!-- <p>Study molecular structures and reactions</p> -->
+                </div>
+                <div class="nav-btn" onclick="window.location.href='3d-structure.html'">
+                    <!-- <i class="fas fa-microscope"></i> -->
+                    <h2>3D Structure</h2>
+                    <p></p>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Chemistry project</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Particle background animation
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas dimensions
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        // Particle class
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+                this.color = `rgba(79, 195, 247, ${Math.random() * 0.4 + 0.1})`;
+            }
+            
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                
+                // Boundary checks
+                if (this.x < 0 || this.x > canvas.width) this.speedX = -this.speedX;
+                if (this.y < 0 || this.y > canvas.height) this.speedY = -this.speedY;
+            }
+            
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Create particles
+        const particles = [];
+        const particleCount = window.innerWidth / 3;
+        
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+        
+        // Animation loop
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw connecting lines
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 100) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(79, 195, 247, ${0.1 * (1 - distance/100)})`;
+                        ctx.lineWidth = 0.3;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            // Update and draw particles
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        // Start animation
+        animate();
+        
+        // Navigation function
+        // function navigate(page) {
+        //     alert(`Navigating to ${page.charAt(0).toUpperCase() + page.slice(1)} page`);
+        //     // In a real project: 
+        //      window.location.href = `${aw}.html`;
+        // }
+    </script>
+</body>
+</html>

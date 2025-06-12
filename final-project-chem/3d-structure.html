@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molecular Explorer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.1.0/3Dmol-min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c1a2d, #1a3a5f);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0) 70%);
+            z-index: -1;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.8;
+            color: #cce6ff;
+        }
+        
+        .search-container {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px auto;
+            max-width: 800px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .search-container::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(76, 175, 80, 0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(0, 20, 40, 0.5);
+            color: white;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        
+        .search-box input::placeholder {
+            color: rgba(200, 230, 255, 0.7);
+        }
+        
+        .search-box input:focus {
+            background: rgba(0, 30, 60, 0.6);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.4);
+            border-color: rgba(76, 175, 80, 0.5);
+        }
+        
+        .search-box button {
+            padding: 16px 35px;
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .search-box button:hover {
+            background: linear-gradient(135deg, #45a049, #1B5E20);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        @media (max-width: 900px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .info-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .viewer-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section-title {
+            font-size: 1.6rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #8BC34A;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        
+        .section-title i {
+            color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #molecule-viewer {
+            width: 100%;
+            height: 400px;
+            background: rgba(0, 10, 20, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .info-card {
+            background: rgba(0, 20, 40, 0.4);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border-color: rgba(76, 175, 80, 0.4);
+        }
+        
+        .info-card h3 {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            margin-bottom: 12px;
+            color: #8BC34A;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-card h3 i {
+            color: #4CAF50;
+        }
+        
+        .info-card p {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #fff;
+            padding-left: 30px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #4CAF50;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 25px;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            display: none;
+            background: rgba(231, 76, 60, 0.15);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px auto;
+            text-align: center;
+            max-width: 800px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 0 20px;
+            margin-top: 50px;
+            font-size: 0.95rem;
+            opacity: 0.7;
+            color: #8BC34A;
+        }
+        
+        .molecule-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.05;
+            z-index: -1;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(76, 175, 80, 0.3) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(76, 175, 80, 0.3) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(76, 175, 80, 0.3) 0%, transparent 30%);
+        }
+        
+        #molecule-viewer canvas[style*="position: absolute"], 
+        #molecule-viewer canvas#undefined, 
+        #molecule-viewer canvas:not([id]) {
+            position: relative !important;
+            left: 0 !important;
+            top: 0 !important;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        .molecule-info-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .molecule-icon {
+            font-size: 2.5rem;
+            color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .molecule-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4CAF50;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .atom-legend {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .atom-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .atom-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        
+        .examples {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .example-chip {
+            background: rgba(76, 175, 80, 0.15);
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        
+        .example-chip:hover {
+            background: rgba(76, 175, 80, 0.25);
+            transform: translateY(-3px);
+        }
+        
+        /* Custom color selection panel */
+        .color-selection {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(0, 20, 40, 0.4);
+            border-radius: 12px;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            display: none;
+        }
+        
+        .color-selection-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #8BC34A;
+            font-size: 1.2rem;
+        }
+        
+        .atom-color-picker {
+            margin-bottom: 20px;
+        }
+        
+        .atom-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .atom-preview {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+        }
+        
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .color-option:hover {
+            transform: scale(1.2);
+            border-color: white;
+        }
+        
+        .color-option.selected {
+            transform: scale(1.2);
+            border-color: white;
+            box-shadow: 0 0 0 2px #4CAF50;
+        }
+        
+        .custom-colors-display {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .color-display-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .color-display-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+        }
+        
+        .color-display-label {
+            font-size: 0.9rem;
+            color: #cce6ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="molecule-bg"></div>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-atom"></i> Molecular Explorer</h1>
+            <p>Discover accurate 3D structures with custom atom coloring</p>
+        </header>
+        
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="cid-input" placeholder="Enter compound name, CID, or formula" value="Caffeine">
+                <button id="search-btn">
+                    <i class="fas fa-search"></i> Explore
+                </button>
+            </div>
+            
+            <div class="examples">
+                <div class="example-chip" data-input="Caffeine">Caffeine</div>
+                <div class="example-chip" data-input="Aspirin">Aspirin</div>
+                <div class="example-chip" data-input="Glucose">Glucose</div>
+                <div class="example-chip" data-input="Serotonin">Serotonin</div>
+                <div class="example-chip" data-input="Dopamine">Dopamine</div>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p id="loading-text">Fetching compound data from PubChem...</p>
+        </div>
+        
+        <div class="error" id="error">
+            <i class="fas fa-exclamation-triangle"></i> <span id="error-msg">Compound not found. Please enter a valid identifier.</span>
+        </div>
+        
+        <div class="content">
+            <div class="info-section">
+                <h2 class="section-title"><i class="fas fa-info-circle"></i> Compound Information</h2>
+                
+                <div class="molecule-info-header">
+                    <div class="molecule-icon">
+                        <i class="fas fa-molecule"></i>
+                    </div>
+                    <div class="molecule-name" id="compound-name">Caffeine</div>
+                </div>
+                
+                <div class="info-grid" id="compound-info">
+                    <div class="info-card">
+                        <h3><i class="fas fa-tag"></i> Common Name</h3>
+                        <p>Caffeine</p>
+                    </div>
+                    <div class="info-card">
+                        <h3><i class="fas fa-file-signature"></i> IUPAC Name</h3>
+                        <p>1,3,7-Trimethylpurine-2,6-dione</p>
+                    </div>
+                    <div class="info-card">
+                        <h3><i class="fas fa-calculator"></i> Molecular Formula</h3>
+                        <p>C<sub>8</sub>H<sub>10</sub>N<sub>4</sub>O<sub>2</sub></p>
+                    </div>
+                    <div class="info-card">
+                        <h3><i class="fas fa-fingerprint"></i> CID</h3>
+                        <p>2519</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="viewer-section">
+                <h2 class="section-title"><i class="fas fa-cube"></i> Ball-and-Stick Structure</h2>
+                <div id="molecule-viewer"></div>
+                
+                <div class="atom-legend">
+                    <div class="atom-item">
+                        <div class="atom-color" style="background-color: #FF0D0D;"></div>
+                        <span>Carbon</span>
+                    </div>
+                    <div class="atom-item">
+                        <div class="atom-color" style="background-color: #FF3030;"></div>
+                        <span>Oxygen</span>
+                    </div>
+                    <div class="atom-item">
+                        <div class="atom-color" style="background-color: #3050F8;"></div>
+                        <span>Nitrogen</span>
+                    </div>
+                    <div class="atom-item">
+                        <div class="atom-color" style="background-color: #90E050;"></div>
+                        <span>Sulfur</span>
+                    </div>
+                    <div class="atom-item">
+                        <div class="atom-color" style="background-color: #B3B3B3;"></div>
+                        <span>Hydrogen</span>
+                    </div>
+                </div>
+                
+                <!-- Custom color selection panel -->
+                <div class="color-selection" id="color-selection">
+                    <div class="color-selection-title">
+                        <i class="fas fa-palette"></i> Customize Atom Colors
+                    </div>
+                    <div id="atom-color-pickers"></div>
+                    
+                    <div class="custom-colors-display" id="custom-colors-display">
+                        <!-- Will be populated with selected colors -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Molecular Explorer</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Global variables
+        let viewer = null;
+        let currentModel = null;
+        let customColors = {};
+        let specialAtoms = [];
+        let currentCompoundName = "";
+        
+        // Initialize the viewer
+        function initViewer() {
+            const viewerDiv = document.getElementById('molecule-viewer');
+            viewer = $3Dmol.createViewer(viewerDiv, {
+                backgroundColor: '0x0a1526'
+            });
+            viewer.render();
+            
+            // Render initial molecule (Caffeine)
+            fetchCompoundData("Caffeine");
+        }
+        
+        // Convert input to CID
+        async function convertToCID(input) {
+            // If input is a number, assume it's a CID
+            if (/^\d+$/.test(input)) {
+                return parseInt(input);
+            }
+            
+            // If input looks like a chemical formula
+            if (/^[A-Za-z0-9]+$/.test(input) && /[A-Za-z]/.test(input) && /\d/.test(input)) {
+                try {
+                    const response = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/fastformula/${input}/cids/JSON`);
+                    if (!response.ok) throw new Error('Formula search failed');
+                    const data = await response.json();
+                    if (data.IdentifierList && data.IdentifierList.CID && data.IdentifierList.CID.length > 0) {
+                        return data.IdentifierList.CID[0];
+                    }
+                } catch (error) {
+                    console.error('Formula search error:', error);
+                }
+            }
+            
+            // Otherwise, try name search
+            try {
+                const response = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(input)}/cids/JSON`);
+                if (!response.ok) throw new Error('Name search failed');
+                const data = await response.json();
+                if (data.IdentifierList && data.IdentifierList.CID && data.IdentifierList.CID.length > 0) {
+                    return data.IdentifierList.CID[0];
+                }
+            } catch (error) {
+                console.error('Name search error:', error);
+            }
+            
+            throw new Error(`No compound found for "${input}"`);
+        }
+        
+        // Get the best name from PubChem data
+        function getBestName(props) {
+            // Try to get the preferred common name
+            const commonName = props.find(p => 
+                p.urn.label === "Title" || 
+                p.urn.label === "Display Name" ||
+                p.urn.label === "Common Name"
+            )?.value?.sval;
+            
+            // Try to get the IUPAC name
+            const iupacName = props.find(p => 
+                p.urn.label === "IUPAC Name" || 
+                p.urn.label === "Preferred IUPAC Name"
+            )?.value?.sval;
+            
+            // Return the best available name
+            return {
+                commonName: commonName || "Unknown",
+                iupacName: iupacName || "Not available"
+            };
+        }
+        
+        // Extract unique non-C/H atoms from formula
+        function extractSpecialAtoms(formula) {
+            const atoms = formula.match(/[A-Z][a-z]*/g) || [];
+            const uniqueAtoms = [...new Set(atoms)];
+            
+            // Filter out Carbon and Hydrogen
+            return uniqueAtoms.filter(atom => 
+                atom !== "C" && 
+                atom !== "H" && 
+                atom !== "c" && 
+                atom !== "h"
+            );
+        }
+        
+        // Create color picker UI for special atoms
+        function createColorPickers(atoms) {
+            const container = document.getElementById('atom-color-pickers');
+            container.innerHTML = "";
+            
+            atoms.forEach(atom => {
+                const picker = document.createElement('div');
+                picker.className = 'atom-color-picker';
+                
+                // Set default color if not already set
+                if (!customColors[atom]) {
+                    customColors[atom] = getDefaultColor(atom);
+                }
+                
+                picker.innerHTML = `
+                    <div class="atom-label">
+                        <div class="atom-preview" style="background-color: ${customColors[atom]};"></div>
+                        <span>Select color for ${atom} atoms:</span>
+                    </div>
+                    <div class="color-grid" id="color-grid-${atom}"></div>
+                `;
+                
+                container.appendChild(picker);
+                
+                // Add color options
+                const colorGrid = document.getElementById(`color-grid-${atom}`);
+                const colors = [
+                    '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF',
+                    '#FF8000', '#8000FF', '#FF0080', '#00FF80', '#80FF00', '#0080FF',
+                    '#FF4040', '#40FF40', '#4040FF', '#FFFF40', '#FF40FF', '#40FFFF'
+                ];
+                
+                colors.forEach(color => {
+                    const colorOption = document.createElement('div');
+                    colorOption.className = 'color-option';
+                    colorOption.style.backgroundColor = color;
+                    colorOption.dataset.atom = atom;
+                    colorOption.dataset.color = color;
+                    
+                    if (color === customColors[atom]) {
+                        colorOption.classList.add('selected');
+                    }
+                    
+                    colorOption.addEventListener('click', () => {
+                        // Remove selected class from all options
+                        document.querySelectorAll(`#color-grid-${atom} .color-option`).forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        
+                        // Add selected class to clicked option
+                        colorOption.classList.add('selected');
+                        
+                        // Update color for this atom
+                        customColors[atom] = color;
+                        
+                        // Update preview
+                        picker.querySelector('.atom-preview').style.backgroundColor = color;
+                        
+                        // Update the molecule with new colors
+                        setBallAndStickStyle();
+                        
+                        // Update color display
+                        updateColorDisplay();
+                    });
+                    
+                    colorGrid.appendChild(colorOption);
+                });
+            });
+            
+            // Show the color selection panel
+            document.getElementById('color-selection').style.display = 'block';
+            
+            // Update color display
+            updateColorDisplay();
+        }
+        
+        // Get default color for an atom type
+        function getDefaultColor(atom) {
+            const defaultColors = {
+                'O': '#FF3030',
+                'N': '#3050F8',
+                'S': '#90E050',
+                'P': '#FF8000',
+                'F': '#90E050',
+                'Cl': '#1FF01F',
+                'Br': '#A52A2A',
+                'I': '#9400D3'
+            };
+            
+            return defaultColors[atom] || getRandomColor();
+        }
+        
+        // Generate a random color
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+        
+        // Update the custom color display
+        function updateColorDisplay() {
+            const container = document.getElementById('custom-colors-display');
+            container.innerHTML = "";
+            
+            specialAtoms.forEach(atom => {
+                const colorItem = document.createElement('div');
+                colorItem.className = 'color-display-item';
+                colorItem.innerHTML = `
+                    <div class="color-display-circle" style="background-color: ${customColors[atom]};"></div>
+                    <div class="color-display-label">${atom}</div>
+                `;
+                container.appendChild(colorItem);
+            });
+        }
+        
+        // Fetch compound data from PubChem
+        async function fetchCompoundData(input) {
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('loading-text').textContent = `Searching for "${input}"...`;
+            
+            // Hide color selection panel initially
+            document.getElementById('color-selection').style.display = 'none';
+            
+            try {
+                // Convert input to CID if needed
+                let cid = input;
+                if (!/^\d+$/.test(input)) {
+                    document.getElementById('loading-text').textContent = `Converting "${input}" to CID...`;
+                    cid = await convertToCID(input);
+                }
+                
+                document.getElementById('loading-text').textContent = `Fetching data for CID ${cid}...`;
+                
+                // Fetch compound record
+                const recordResponse = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/JSON`);
+                if (!recordResponse.ok) throw new Error('Compound not found');
+                
+                const recordData = await recordResponse.json();
+                
+                // Extract compound information
+                const pcData = recordData.PC_Compounds[0];
+                const props = pcData.props;
+                
+                // Get the best names
+                const names = getBestName(props);
+                const commonName = names.commonName;
+                const iupacName = names.iupacName;
+                const formula = props.find(p => p.urn.label === "Molecular Formula")?.value?.sval || "Unknown";
+                
+                // Store compound name
+                currentCompoundName = commonName;
+                
+                // Update UI
+                document.getElementById('compound-name').textContent = commonName;
+                
+                // Update info cards
+                const infoGrid = document.getElementById('compound-info');
+                infoGrid.innerHTML = `
+                    <div class="info-card">
+                        <h3><i class="fas fa-tag"></i> Common Name</h3>
+                        <p>${commonName}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3><i class="fas fa-file-signature"></i> IUPAC Name</h3>
+                        <p>${iupacName}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3><i class="fas fa-calculator"></i> Molecular Formula</h3>
+                        <p>${formula}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3><i class="fas fa-fingerprint"></i> CID</h3>
+                        <p>${cid}</p>
+                    </div>
+                `;
+                
+                // Extract special atoms (non-C/H)
+                specialAtoms = extractSpecialAtoms(formula);
+                
+                document.getElementById('loading-text').textContent = `Fetching 3D structure for CID ${cid}...`;
+                
+                // Fetch 3D structure
+                let sdfData = null;
+                try {
+                    const sdfResponse = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/record/SDF/?record_type=3d`);
+                    if (sdfResponse.ok) {
+                        sdfData = await sdfResponse.text();
+                    } else {
+                        throw new Error('3D structure not available');
+                    }
+                    
+                    // Render molecule
+                    renderMolecule(sdfData);
+                    
+                    // Create color pickers if needed
+                    if (specialAtoms.length > 0) {
+                        createColorPickers(specialAtoms);
+                    }
+                } catch (sdfError) {
+                    console.error('Error fetching structure:', sdfError);
+                    throw new Error('Could not load molecular structure');
+                }
+                
+            } catch (error) {
+                console.error('Error fetching compound data:', error);
+                document.getElementById('error-msg').textContent = error.message || 'Failed to fetch compound data. Please enter a valid identifier.';
+                document.getElementById('error').style.display = 'block';
+                clearViewer();
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+        
+        // Render molecule in 3D viewer with ball-and-stick style
+        function renderMolecule(sdfData) {
+            if (!viewer) initViewer();
+            
+            // Clear existing models
+            viewer.clear();
+            
+            // Add new model
+            viewer.addModel(sdfData, "sdf", {
+                doAssembly: true,
+                multibond: true
+            });
+            
+            // Set ball-and-stick style
+            setBallAndStickStyle();
+            
+            // Zoom to fit
+            viewer.zoomTo();
+            viewer.render();
+        }
+        
+        // Set ball-and-stick visualization style
+        function setBallAndStickStyle() {
+            const defaultColorMap = {
+                'C': '#FF0D0D',   // Carbon - light red
+                'H': '#B3B3B3',   // Hydrogen - light gray
+                'O': '#FF3030',   // Oxygen - red
+                'N': '#3050F8',   // Nitrogen - blue
+                'S': '#90E050',   // Sulfur - green
+                'P': '#FF8000',   // Phosphorus - orange
+                'F': '#90E050',   // Fluorine - green
+                'Cl': '#1FF01F',  // Chlorine - bright green
+                'Br': '#A52A2A',  // Bromine - brown
+                'I': '#9400D3'    // Iodine - purple
+            };
+            
+            // Merge default colors with custom colors
+            const colorMap = {
+                ...defaultColorMap,
+                ...customColors
+            };
+            
+            viewer.setStyle({}, {
+                sphere: {
+                    scale: 0.25,
+                    colorscheme: {
+                        prop: 'elem',
+                        map: colorMap
+                    }
+                },
+                stick: {
+                    radius: 0.15,
+                    colorscheme: {
+                        prop: 'elem',
+                        map: colorMap
+                    }
+                }
+            });
+            
+            viewer.render();
+        }
+        
+        // Clear viewer
+        function clearViewer() {
+            if (viewer) {
+                viewer.clear();
+                viewer.render();
+            }
+            document.getElementById('compound-name').textContent = 'Molecular Explorer';
+            document.getElementById('compound-info').innerHTML = `
+                <div class="info-card">
+                    <h3><i class="fas fa-tag"></i> Common Name</h3>
+                    <p>Search for a compound</p>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fas fa-file-signature"></i> IUPAC Name</h3>
+                    <p>Search for a compound</p>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fas fa-calculator"></i> Molecular Formula</h3>
+                    <p>Search for a compound</p>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fas fa-fingerprint"></i> CID</h3>
+                    <p>Search for a compound</p>
+                </div>
+            `;
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize viewer
+            initViewer();
+            
+            // Search button
+            document.getElementById('search-btn').addEventListener('click', function() {
+                const input = document.getElementById('cid-input').value.trim();
+                if (input) fetchCompoundData(input);
+            });
+            
+            // Example chips
+            document.querySelectorAll('.example-chip').forEach(chip => {
+                chip.addEventListener('click', function() {
+                    const input = this.getAttribute('data-input');
+                    document.getElementById('cid-input').value = input;
+                    fetchCompoundData(input);
+                });
+            });
+            
+            // Allow Enter key to trigger search
+            document.getElementById('cid-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('search-btn').click();
+                }
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (viewer) {
+                    viewer.resize();
+                    viewer.render();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

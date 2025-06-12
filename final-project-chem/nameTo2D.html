@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IUPAC to Molecule Info</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/smiles-drawer@1.0.10/dist/smiles-drawer.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+        header {
+            background: linear-gradient(to right, #2c3e50, #1a2a6c);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(30deg);
+        }
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            position: relative;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+            position: relative;
+        }
+        .content {
+            padding: 30px;
+        }
+        .input-group {
+            margin-bottom: 25px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+        .input-container {
+            display: flex;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .input-container input {
+            flex: 1;
+            padding: 18px 25px;
+            border: none;
+            font-size: 1.2rem;
+            background: #f8f9fa;
+            color: #2c3e50;
+        }
+        .input-container input:focus {
+            outline: none;
+            background: #fff;
+        }
+        .input-container input::placeholder {
+            color: #6c757d;
+        }
+        .input-container button {
+            background: #2980b9;
+            color: white;
+            border: none;
+            padding: 0 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .input-container button:hover {
+            background: #3498db;
+        }
+        .input-container button:active {
+            transform: translateY(2px);
+        }
+        .results-section {
+            display: flex;
+            gap: 25px;
+            margin-top: 20px;
+        }
+        .result-container {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+            min-height: 200px;
+        }
+        .result-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        .result-title h2 {
+            font-size: 1.5rem;
+        }
+        .result-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 1.3rem;
+            word-break: break-word;
+            min-height: 120px;
+            border: 1px solid #dee2e6;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            text-align: left;
+        }
+        .molecule-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+        }
+        #molecule-canvas {
+            width: 100%;
+            height: 200px;
+        }
+        .molecule-placeholder {
+            color: #6c757d;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+        .molecule-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+        .details-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .detail-card {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #bbdefb;
+        }
+        .detail-card h3 {
+            color: #1565c0;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .detail-card p {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        .spinner {
+            border: 5px solid rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            color: #c62828;
+            background: #ffebee;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+        .error i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        footer {
+            text-align: center;
+            padding: 25px;
+            background: #f8f9fa;
+            color: #6c757d;
+            font-size: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+        .chemical-icon {
+            font-size: 1.2rem;
+            vertical-align: middle;
+            margin: 0 2px;
+        }
+        @media (max-width: 768px) {
+            .results-section {
+                grid-template-columns: 1fr;
+            }
+            header h1 {
+                font-size: 2.2rem;
+            }
+            .input-container {
+                flex-direction: column;
+            }
+            .input-container button {
+                padding: 15px;
+                justify-content: center;
+            }
+        }
+        @media (max-width: 480px) {
+            .detail-card {
+                padding: 15px;
+            }
+            header h1 {
+                font-size: 1.8rem;
+            }
+            header p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-atom"></i> IUPAC to Molecule Info</h1>
+            <p>Convert IUPAC chemical names to detailed molecule information <br>BY VANSH</p>
+        </header>
+        <div class="content">
+            <div class="input-group">
+                <label for="iupac-input">Enter IUPAC Name or Common Chemical Name:</label>
+                <div class="input-container">
+                    <input type="text" id="iupac-input" placeholder="e.g., Ethanol, Aspirin, Caffeine, Glucose...">
+                    <button id="convert-btn">
+                        <i class="fas fa-flask"></i> Convert
+                    </button>
+                </div>
+            </div>
+            <div class="loader" id="loader">
+                <div class="spinner"></div>
+                <p>Querying PubChem database for molecular data...</p>
+            </div>
+            <div class="error" id="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div id="error-text">Compound not found. Please check the name and try again.</div>
+            </div>
+            <div class="results-section" style="display: flex; gap: 25px; margin-top: 20px;">
+                <div class="result-container" style="flex: 1;">
+                    <div class="result-title">
+                        <i class="fas fa-info-circle"></i>
+                        <h2>Molecule Information</h2>
+                    </div>
+                    <div class="result-box" id="molecule-info">
+                        <div id="wiki-summary">Loading summary...</div>
+                    </div>
+                </div>
+                <div class="result-container" style="flex: 1;">
+                    <div class="result-title">
+                        <i class="fas fa-shapes"></i>
+                        <h2>Molecular Structure</h2>
+                    </div>
+                    <div class="molecule-display" id="molecule-display">
+                        <div class="molecule-placeholder">
+                            <i class="fas fa-molecule"></i>
+                            <p>Molecular structure visualization will appear here</p>
+                        </div>
+                        <canvas id="molecule-canvas" width="300" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="details-container" id="details-container">
+                <div class="detail-card">
+                    <h3><i class="fas fa-cube"></i> Molecular Formula</h3>
+                    <p id="molecular-formula">-</p>
+                </div>
+                <div class="detail-card">
+                    <h3><i class="fas fa-weight-hanging"></i> Molecular Weight</h3>
+                    <p id="molecular-weight">-</p>
+                </div>
+                <div class="detail-card">
+                    <h3><i class="fas fa-vial"></i> Compound CID</h3>
+                    <p id="compound-cid">-</p>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <p>This tool uses the PubChem database to convert IUPAC names to molecule information. PubChem is maintained by the National Center for Biotechnology Information (NCBI).</p>
+            <p>Created with Chemistry &lt;3</p>
+        </footer>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const convertBtn = document.getElementById('convert-btn');
+            const iupacInput = document.getElementById('iupac-input');
+            const loader = document.getElementById('loader');
+            const errorMessage = document.getElementById('error-message');
+            const errorText = document.getElementById('error-text');
+            const moleculeDisplay = document.getElementById('molecule-display');
+            const moleculeCanvas = document.getElementById('molecule-canvas');
+            const molecularFormula = document.getElementById('molecular-formula');
+            const molecularWeight = document.getElementById('molecular-weight');
+            const compoundCid = document.getElementById('compound-cid');
+            const moleculeInfo = document.getElementById('molecule-info');
+            const wikiSummary = document.getElementById('wiki-summary');
+            const meltingPoint = document.getElementById('melting-point');
+            const boilingPoint = document.getElementById('boiling-point');
+            const density = document.getElementById('density');
+
+            // Initialize SmilesDrawer
+            const options = { width: 300, height: 200 };
+            const smilesDrawer = new SmilesDrawer.Drawer(options);
+
+            // Hide canvas initially
+            moleculeCanvas.style.display = 'none';
+
+            // Handle convert button click
+            convertBtn.addEventListener('click', function() {
+                const iupacName = iupacInput.value.trim();
+                if (iupacName) {
+                    convertIUPACtoInfo(iupacName);
+                } else {
+                    showError("Please enter a chemical name");
+                }
+            });
+
+            // Handle Enter key in input field
+            iupacInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    convertBtn.click();
+                }
+            });
+
+            async function convertIUPACtoInfo(iupacName) {
+                // Reset previous results
+                wikiSummary.textContent = "Loading summary...";
+                molecularFormula.textContent = "-";
+                molecularWeight.textContent = "-";
+                compoundCid.textContent = "-";
+                hideError();
+                loader.style.display = "block";
+                moleculeCanvas.style.display = "none";
+                // Clear previous molecule drawing
+                const ctx = moleculeCanvas.getContext('2d');
+                ctx.clearRect(0, 0, moleculeCanvas.width, moleculeCanvas.height);
+                document.querySelector('.molecule-placeholder').style.display = 'block';
+
+                try {
+                    // Step 1: Get CID from name
+                    const cidResponse = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(iupacName)}/cids/JSON`);
+                    if (!cidResponse.ok) {
+                        const errorData = await cidResponse.json();
+                        throw new Error(errorData.Fault ? errorData.Fault.Message : 'Compound not found in PubChem database');
+                    }
+                    const cidData = await cidResponse.json();
+                    const cid = cidData.IdentifierList.CID[0];
+                    if (!cid) throw new Error('No CID found for this compound');
+                    compoundCid.textContent = cid;
+
+                    // Step 2: Get compound details (including melting/boiling point, density)
+                    const propList = [
+                        "CanonicalSMILES",
+                        "MolecularFormula",
+                        "MolecularWeight"
+                    ].join(",");
+                    const compoundResponse = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/property/${propList}/JSON`);
+                    if (!compoundResponse.ok) {
+                        const errorData = await compoundResponse.json();
+                        throw new Error(errorData.Fault ? errorData.Fault.Message : 'Failed to retrieve compound data');
+                    }
+                    const compoundData = await compoundResponse.json();
+                    const compound = compoundData.PropertyTable.Properties[0];
+                    if (!compound) throw new Error('Compound data not available');
+
+                    // Update details
+                    molecularFormula.textContent = compound.MolecularFormula || "N/A";
+                    if (compound.MolecularWeight) {
+                        const weight = parseFloat(compound.MolecularWeight);
+                        molecularWeight.textContent = isNaN(weight) ? compound.MolecularWeight : weight.toFixed(2);
+                    } else {
+                        molecularWeight.textContent = "N/A";
+                    }
+
+                    // Draw molecule if SMILES is available
+                    if (compound.CanonicalSMILES) {
+                        drawMolecule(compound.CanonicalSMILES);
+                    } else {
+                        document.querySelector('.molecule-placeholder').style.display = 'block';
+                        moleculeCanvas.style.display = 'none';
+                    }
+
+                    // Fetch Wikipedia summary
+                    fetchWikipediaSummary(iupacName, compound.MolecularFormula);
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError(error.message);
+                    wikiSummary.textContent = "No information available.";
+                } finally {
+                    loader.style.display = "none";
+                }
+            }
+
+            function drawMolecule(smiles) {
+                try {
+                    // Hide placeholder
+                    document.querySelector('.molecule-placeholder').style.display = 'none';
+                    // Show canvas
+                    moleculeCanvas.style.display = 'block';
+                    // Draw molecule
+                    SmilesDrawer.parse(smiles, function(tree) {
+                        smilesDrawer.draw(tree, 'molecule-canvas', 'light', false);
+                    });
+                } catch (error) {
+                    console.error('Drawing error:', error);
+                    document.querySelector('.molecule-placeholder').style.display = 'block';
+                    moleculeCanvas.style.display = 'none';
+                }
+            }
+
+            function showError(message) {
+                errorText.innerHTML = `<strong>Error:</strong> ${message}`;
+                errorMessage.style.display = "block";
+            }
+
+            function hideError() {
+                errorMessage.style.display = "none";
+            }
+
+            async function fetchWikipediaSummary(query, fallbackFormula) {
+                try {
+                    // Wikipedia API: get summary for the compound
+                    const apiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) throw new Error("No Wikipedia summary found.");
+                    const data = await response.json();
+                    if (data.extract) {
+                        wikiSummary.innerHTML = data.extract_html || data.extract;
+                    } else {
+                        showFallbackInfo(fallbackFormula);
+                    }
+                } catch (e) {
+                    showFallbackInfo(fallbackFormula);
+                }
+            }
+
+            // Helper to parse formula and show atom counts
+            function showFallbackInfo(formula) {
+                if (!formula || formula === "-" || formula === "N/A") {
+                    wikiSummary.textContent = "No information available.";
+                    return;
+                }
+                // Parse formula like C6H12O6
+                const atomCounts = {};
+                // Match elements and their counts
+                const regex = /([A-Z][a-z]*)(\d*)/g;
+                let match;
+                while ((match = regex.exec(formula)) !== null) {
+                    const element = match[1];
+                    const count = match[2] ? parseInt(match[2], 10) : 1;
+                    atomCounts[element] = count;
+                }
+
+                // Build atom description
+                const atoms = Object.entries(atomCounts)
+                    .map(([atom, count]) => `${count} ${atom}`)
+                    .join(', ');
+
+                // Guess organic/inorganic
+                let type = "inorganic";
+                if (atomCounts["C"] && atomCounts["H"]) type = "organic";
+
+                // Get compound name from input
+                const compoundName = iupacInput.value.trim() || "This compound";
+
+                // Build info string
+                let info = `<strong>No Wikipedia summary available.</strong><br>`;
+                info += `<span>${compoundName} is an ${type} compound containing ${atoms}.</span>`;
+                wikiSummary.innerHTML = info;
+            }
+
+            // Initialize with an example
+            convertIUPACtoInfo('Ethanol');
+        });
+    </script>
+</body>
+</html>
